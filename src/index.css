@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+@import 'tailwindcss';
+
+@theme inline {
+  --color-obsidian: #09090e;
+  --color-obsidian-800: #111118;
+  --color-obsidian-700: #16161f;
+  --color-obsidian-600: #1c1c28;
+  --color-obsidian-500: #242435;
+  --color-gold: #d4a017;
+  --color-gold-light: #e8b830;
+  --color-gold-dim: #a07c10;
+  --color-gold-muted: rgba(212, 160, 23, 0.12);
+  --color-cream: #f5f0e8;
+  --color-mist: #9090a8;
+  --color-border: rgba(212, 160, 23, 0.18);
+
+  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #09090e;
+  color: #f5f0e8;
+  font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #09090e;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 160, 23, 0.3);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 160, 23, 0.6);
+}
+
+/* Selection */
+::selection {
+  background: rgba(212, 160, 23, 0.25);
+  color: #f5f0e8;
+}
+
+/* Gold hairline dividers */
+.gold-line {
+  border-color: rgba(212, 160, 23, 0.2);
+}
+
+/* Subtle gradient for hero */
+.hero-gradient {
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(212, 160, 23, 0.08) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 30% at 80% 20%, rgba(212, 160, 23, 0.04) 0%, transparent 60%);
+}
+
+/* Card glow on hover */
+.card-glow:hover {
+  box-shadow: 0 0 0 1px rgba(212, 160, 23, 0.3), 0 8px 32px rgba(212, 160, 23, 0.06);
+}
+
+/* Ticker animation */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-track {
+  animation: ticker 28s linear infinite;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
+/* Fade-in for page transitions */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: fadeUp 0.5s ease both;
+}

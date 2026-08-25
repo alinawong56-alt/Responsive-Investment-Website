@@ -1,0 +1,10 @@
+{
+  "description": "This investment website offers users a sleek, responsive platform to explore investment opportunities, manage portfolios, and access financial insights.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
