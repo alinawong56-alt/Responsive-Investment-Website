@@ -1,5 +1,8 @@
 import { createBrowserRouter } from "react-router";
+
 import Layout from "./components/Layout";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
+
 import Home from "./pages/Home";
 import Plans from "./pages/Plans";
 import About from "./pages/About";
@@ -12,22 +15,52 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import RiskDisclosure from "./pages/RiskDisclosure";
 
+import Dashboard from "./pages/dashboard/Dashboard";
+import DashboardPlans from "./pages/dashboard/DashboardPlans";
+import Wallet from "./pages/dashboard/Wallet";
+import Investments from "./pages/dashboard/Investments";
+import Deposit from "./pages/dashboard/Deposit";
+import Withdraw from "./pages/dashboard/Withdraw";
+import Transactions from "./pages/dashboard/Transactions";
+import Notifications from "./pages/dashboard/Notifications";
+import Profile from "./pages/dashboard/Profile";
+import Settings from "./pages/dashboard/Settings";
+import Support from "./pages/dashboard/Support";
+
 export const router = createBrowserRouter([
   {
     path: "/",
-    Component: Layout,
+    element: <Layout />,
     children: [
-      { index: true, Component: Home },
-      { path: "plans", Component: Plans },
-      { path: "about", Component: About },
-      { path: "how-it-works", Component: HowItWorks },
-      { path: "faq", Component: FAQ },
-      { path: "contact", Component: Contact },
-      { path: "login", Component: Login },
-      { path: "register", Component: Register },
-      { path: "terms", Component: Terms },
-      { path: "privacy", Component: Privacy },
-      { path: "risk-disclosure", Component: RiskDisclosure },
+      { index: true, element: <Home /> },
+      { path: "plans", element: <Plans /> },
+      { path: "about", element: <About /> },
+      { path: "how-it-works", element: <HowItWorks /> },
+      { path: "faq", element: <FAQ /> },
+      { path: "contact", element: <Contact /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
+      { path: "terms", element: <Terms /> },
+      { path: "privacy", element: <Privacy /> },
+      { path: "risk-disclosure", element: <RiskDisclosure /> },
+    ],
+  },
+
+  {
+    path: "/dashboard",
+    element: <DashboardLayout />,
+    children: [
+      { index: true, element: <Dashboard /> },
+      { path: "wallet", element: <Wallet /> },
+      { path: "plans", element: <DashboardPlans /> },
+      { path: "investments", element: <Investments /> },
+      { path: "deposit", element: <Deposit /> },
+      { path: "withdraw", element: <Withdraw /> },
+      { path: "transactions", element: <Transactions /> },
+      { path: "notifications", element: <Notifications /> },
+      { path: "profile", element: <Profile /> },
+      { path: "settings", element: <Settings /> },
+      { path: "support", element: <Support /> },
     ],
   },
 ]);
