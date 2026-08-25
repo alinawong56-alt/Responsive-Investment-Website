@@ -88,7 +88,7 @@ export default function Investments() {
           </p>
 
           <Link
-            to="/plans"
+            to="/dashboard/plans"
             className="inline-block mt-6 px-6 py-3 text-sm font-bold"
             style={{
               background: "#d4a017",
