@@ -21,3 +21,8 @@
   },
   "include": ["src", "vite.config.ts"]
 }
+// .husky/pre-commit
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+pnpm install --frozen-lockfile
