@@ -88,7 +88,7 @@ export default function DashboardPlans() {
     setMessage("");
   }
 
-  function continueInvestment() {
+  async function continueInvestment() {
     if (!selectedPlan) return;
 
     setMessage("");
@@ -123,22 +123,43 @@ export default function DashboardPlans() {
     }
 
     if (numericAmount > balance) {
-      const needed = numericAmount - balance;
-
       setMessage(
-        `Insufficient balance. Your available balance is ${money(
-          balance
-        )}. You need ${money(needed)} more.`
+        `Insufficient balance. Your available balance is ${money(balance)}.`
       );
       return;
     }
 
-    navigate("/dashboard/investments", {
-      state: {
-        plan: selectedPlan,
-        amount: numericAmount,
-      },
-    });
+    setLoading(true);
+
+    try {
+      const { data: result, error } = await supabase.rpc(
+        "create_investment",
+        {
+          p_plan_id: selectedPlan.id,
+          p_amount: numericAmount,
+        }
+      );
+
+      if (error) {
+        console.error("Investment error:", error);
+        setMessage(error.message);
+        return;
+      }
+
+      if (!result?.success) {
+        setMessage(
+          result?.message || "Unable to create the investment."
+        );
+        return;
+      }
+
+      navigate("/dashboard/investments");
+    } catch (error) {
+      console.error(error);
+      setMessage("Unable to create investment. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (loading) {
@@ -372,13 +393,15 @@ export default function DashboardPlans() {
           <button
             type="button"
             onClick={continueInvestment}
+            disabled={loading}
             className="mt-5 px-6 py-4 font-bold"
             style={{
-              background: "#d4a017",
+              background: loading ? "#6d5a1f" : "#d4a017",
               color: "#09090e",
+              cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            Continue with Investment →
+            {loading ? "Creating Investment..." : "Invest Now →"}
           </button>
         </div>
       )}

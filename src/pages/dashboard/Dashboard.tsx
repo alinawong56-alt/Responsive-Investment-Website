@@ -10,7 +10,7 @@ type Wallet = {
 
 type Investment = {
   id: string;
-  amount: number;
+  principal: number;
   daily_rate: number;
   accrued_profit: number;
   start_date: string;
@@ -69,13 +69,16 @@ export default function Dashboard() {
         .single();
 
       if (walletError) {
-        throw walletError;
+        console.error("Wallet error:", walletError);
+      } else {
+        setWallet(walletData);
       }
-
-      setWallet(walletData);
 
       /*
        * INVESTMENTS
+       *
+       * IMPORTANT:
+       * Database uses "principal", NOT "amount".
        */
       const { data: investmentData, error: investmentError } =
         await supabase
@@ -83,7 +86,7 @@ export default function Dashboard() {
           .select(
             `
               id,
-              amount,
+              principal,
               daily_rate,
               accrued_profit,
               start_date,
@@ -96,6 +99,7 @@ export default function Dashboard() {
 
       if (investmentError) {
         console.error("Investment error:", investmentError);
+        setInvestments([]);
       } else {
         setInvestments(investmentData ?? []);
       }
@@ -138,13 +142,50 @@ export default function Dashboard() {
     })}`;
   }
 
-  function formatDate(date: string) {
-    return new Date(date).toLocaleDateString("en-US", {
+  function formatDate(value: string) {
+    if (!value) return "—";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "—";
+    }
+
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
   }
+
+  /*
+   * ACTIVE INVESTMENTS
+   *
+   * Handles ACTIVE / active / Active safely.
+   */
+  const activeInvestments = investments.filter(
+    (investment) =>
+      investment.status?.toUpperCase() === "ACTIVE"
+  );
+
+  /*
+   * Calculate these directly from investments.
+   *
+   * This means the overview does not depend on
+   * wallets.invested_balance or wallets.total_profit
+   * being manually updated.
+   */
+  const calculatedInvestedBalance = activeInvestments.reduce(
+    (total, investment) =>
+      total + Number(investment.principal ?? 0),
+    0
+  );
+
+  const calculatedTotalProfit = investments.reduce(
+    (total, investment) =>
+      total + Number(investment.accrued_profit ?? 0),
+    0
+  );
 
   if (loading) {
     return (
@@ -176,10 +217,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const activeInvestments = investments.filter(
-    (investment) => investment.status === "ACTIVE"
-  );
 
   return (
     <div
@@ -321,7 +358,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* WALLET CARDS */}
+        {/* WALLET / OVERVIEW CARDS */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
 
@@ -332,12 +369,12 @@ export default function Dashboard() {
 
           <StatCard
             title="Invested Balance"
-            value={money(wallet?.invested_balance)}
+            value={money(calculatedInvestedBalance)}
           />
 
           <StatCard
             title="Total Profit"
-            value={money(wallet?.total_profit)}
+            value={money(calculatedTotalProfit)}
             gold
           />
 
@@ -460,7 +497,7 @@ export default function Dashboard() {
                       </p>
 
                       <p className="text-xl font-bold mt-1">
-                        {money(investment.amount)}
+                        {money(investment.principal)}
                       </p>
                     </div>
 
@@ -518,11 +555,11 @@ export default function Dashboard() {
                         className="inline-block mt-2 px-3 py-1 text-xs font-semibold"
                         style={{
                           background:
-                            investment.status === "ACTIVE"
+                            investment.status?.toUpperCase() === "ACTIVE"
                               ? "rgba(50,180,100,0.1)"
                               : "rgba(212,160,23,0.1)",
                           color:
-                            investment.status === "ACTIVE"
+                            investment.status?.toUpperCase() === "ACTIVE"
                               ? "#5dcc8a"
                               : "#d4a017",
                         }}
@@ -601,6 +638,7 @@ export default function Dashboard() {
                     }}
                   >
                     <tr>
+
                       <th className="text-left p-4">
                         Type
                       </th>
@@ -616,6 +654,7 @@ export default function Dashboard() {
                       <th className="text-left p-4">
                         Date
                       </th>
+
                     </tr>
                   </thead>
 
@@ -696,6 +735,7 @@ function StatCard({
         borderColor: "rgba(212,160,23,0.15)",
       }}
     >
+
       <p
         className="text-sm"
         style={{ color: "#9090a8" }}
@@ -709,6 +749,7 @@ function StatCard({
       >
         {value}
       </p>
+
     </div>
   );
 }
@@ -736,6 +777,7 @@ function ActionButton({
         borderColor: "rgba(212,160,23,0.15)",
       }}
     >
+
       <p className="font-bold">
         {title}
       </p>
@@ -746,6 +788,7 @@ function ActionButton({
       >
         {description}
       </p>
+
     </Link>
   );
 }

@@ -1,3 +1,4 @@
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import { createBrowserRouter } from "react-router";
 
 import Layout from "./components/Layout";
@@ -28,6 +29,10 @@ import Settings from "./pages/dashboard/Settings";
 import Support from "./pages/dashboard/Support";
 
 export const router = createBrowserRouter([
+  {
+    path: "/admin",
+    element: <AdminDashboard />,
+  },
   {
     path: "/",
     element: <Layout />,

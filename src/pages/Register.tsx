@@ -2,6 +2,21 @@ import { useState, FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { supabase } from "../lib/supabase";
 
+const countries = [
+  "Nigeria",
+  "Ghana",
+  "South Africa",
+  "Kenya",
+  "United Kingdom",
+  "United States",
+  "Canada",
+  "Australia",
+  "Germany",
+  "France",
+  "United Arab Emirates",
+  "Other",
+];
+
 export default function Register() {
   const navigate = useNavigate();
 
@@ -9,6 +24,8 @@ export default function Register() {
     firstName: "",
     lastName: "",
     email: "",
+    country: "",
+    phone: "",
     password: "",
     confirmPassword: "",
     agreed: false,
@@ -19,12 +36,17 @@ export default function Register() {
   const [success, setSuccess] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value, type, checked } = e.target;
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) {
+    const { name, value, type } = e.target;
 
     setForm((f) => ({
       ...f,
-      [name]: type === "checkbox" ? checked : value,
+      [name]:
+        type === "checkbox"
+          ? (e.target as HTMLInputElement).checked
+          : value,
     }));
 
     setFieldErrors((fe) => ({
@@ -49,6 +71,14 @@ export default function Register() {
 
     if (!form.email.includes("@")) {
       errs.email = "Enter a valid email address.";
+    }
+
+    if (!form.country) {
+      errs.country = "Please select your country.";
+    }
+
+    if (!form.phone.trim()) {
+      errs.phone = "Phone number is required.";
     }
 
     if (form.password.length < 8) {
@@ -89,6 +119,8 @@ export default function Register() {
           data: {
             first_name: form.firstName.trim(),
             last_name: form.lastName.trim(),
+            country: form.country,
+            phone: form.phone.trim(),
           },
         },
       });
@@ -102,8 +134,34 @@ export default function Register() {
       }
 
       /*
-       * If Supabase email confirmation is enabled,
-       * the user must verify their email before logging in.
+       * Create/update the user's profile.
+       */
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: data.user.id,
+            first_name: form.firstName.trim(),
+            last_name: form.lastName.trim(),
+            email: form.email.trim(),
+            country: form.country,
+            phone: form.phone.trim(),
+          },
+          {
+            onConflict: "id",
+          }
+        );
+
+      if (profileError) {
+        console.error("Profile creation error:", profileError);
+
+        throw new Error(
+          "Your account was created, but we could not save your profile information. Please contact support."
+        );
+      }
+
+      /*
+       * Email confirmation enabled.
        */
       if (!data.session) {
         setSuccess(
@@ -114,6 +172,8 @@ export default function Register() {
           firstName: "",
           lastName: "",
           email: "",
+          country: "",
+          phone: "",
           password: "",
           confirmPassword: "",
           agreed: false,
@@ -123,10 +183,9 @@ export default function Register() {
       }
 
       /*
-       * If email confirmation is disabled,
-       * Supabase creates a session immediately.
+       * Email confirmation disabled.
        */
-      navigate("/login");
+      navigate("/dashboard");
     } catch (err) {
       const message =
         err instanceof Error
@@ -188,7 +247,7 @@ export default function Register() {
             className="text-sm mt-2"
             style={{ color: "#9090a8" }}
           >
-            Minimum opening investment: $1,000 · All investments carry risk.
+            Create your account to access your investment dashboard.
           </p>
         </div>
 
@@ -230,10 +289,7 @@ export default function Register() {
             <div className="grid grid-cols-2 gap-4">
 
               <div>
-                <label
-                  className="block text-xs font-semibold mb-2"
-                  style={{ color: "#9090a8" }}
-                >
+                <label className="block text-xs font-semibold mb-2">
                   First Name
                 </label>
 
@@ -249,20 +305,14 @@ export default function Register() {
                 />
 
                 {fieldErrors.firstName && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "#e05050" }}
-                  >
+                  <p className="text-xs mt-1" style={{ color: "#e05050" }}>
                     {fieldErrors.firstName}
                   </p>
                 )}
               </div>
 
               <div>
-                <label
-                  className="block text-xs font-semibold mb-2"
-                  style={{ color: "#9090a8" }}
-                >
+                <label className="block text-xs font-semibold mb-2">
                   Last Name
                 </label>
 
@@ -278,10 +328,7 @@ export default function Register() {
                 />
 
                 {fieldErrors.lastName && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "#e05050" }}
-                  >
+                  <p className="text-xs mt-1" style={{ color: "#e05050" }}>
                     {fieldErrors.lastName}
                   </p>
                 )}
@@ -290,10 +337,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label
-                className="block text-xs font-semibold mb-2"
-                style={{ color: "#9090a8" }}
-              >
+              <label className="block text-xs font-semibold mb-2">
                 Email Address
               </label>
 
@@ -309,20 +353,71 @@ export default function Register() {
               />
 
               {fieldErrors.email && (
-                <p
-                  className="text-xs mt-1"
-                  style={{ color: "#e05050" }}
-                >
+                <p className="text-xs mt-1" style={{ color: "#e05050" }}>
                   {fieldErrors.email}
                 </p>
               )}
             </div>
 
             <div>
-              <label
-                className="block text-xs font-semibold mb-2"
-                style={{ color: "#9090a8" }}
+              <label className="block text-xs font-semibold mb-2">
+                Country
+              </label>
+
+              <select
+                name="country"
+                required
+                value={form.country}
+                onChange={handleChange}
+                style={inputStyle(!!fieldErrors.country)}
               >
+                <option value="" style={{ background: "#111118" }}>
+                  Select your country
+                </option>
+
+                {countries.map((country) => (
+                  <option
+                    key={country}
+                    value={country}
+                    style={{ background: "#111118" }}
+                  >
+                    {country}
+                  </option>
+                ))}
+              </select>
+
+              {fieldErrors.country && (
+                <p className="text-xs mt-1" style={{ color: "#e05050" }}>
+                  {fieldErrors.country}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-2">
+                Phone Number
+              </label>
+
+              <input
+                type="tel"
+                name="phone"
+                required
+                value={form.phone}
+                onChange={handleChange}
+                style={inputStyle(!!fieldErrors.phone)}
+                placeholder="+234 801 234 5678"
+                autoComplete="tel"
+              />
+
+              {fieldErrors.phone && (
+                <p className="text-xs mt-1" style={{ color: "#e05050" }}>
+                  {fieldErrors.phone}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-2">
                 Password
               </label>
 
@@ -338,20 +433,14 @@ export default function Register() {
               />
 
               {fieldErrors.password && (
-                <p
-                  className="text-xs mt-1"
-                  style={{ color: "#e05050" }}
-                >
+                <p className="text-xs mt-1" style={{ color: "#e05050" }}>
                   {fieldErrors.password}
                 </p>
               )}
             </div>
 
             <div>
-              <label
-                className="block text-xs font-semibold mb-2"
-                style={{ color: "#9090a8" }}
-              >
+              <label className="block text-xs font-semibold mb-2">
                 Confirm Password
               </label>
 
@@ -367,10 +456,7 @@ export default function Register() {
               />
 
               {fieldErrors.confirmPassword && (
-                <p
-                  className="text-xs mt-1"
-                  style={{ color: "#e05050" }}
-                >
+                <p className="text-xs mt-1" style={{ color: "#e05050" }}>
                   {fieldErrors.confirmPassword}
                 </p>
               )}
@@ -394,37 +480,25 @@ export default function Register() {
                   style={{ color: "#9090a8" }}
                 >
                   I have read and agree to the{" "}
-                  <Link
-                    to="/terms"
-                    style={{ color: "#d4a017" }}
-                  >
+                  <Link to="/terms" style={{ color: "#d4a017" }}>
                     Terms of Service
                   </Link>
                   ,{" "}
-                  <Link
-                    to="/privacy"
-                    style={{ color: "#d4a017" }}
-                  >
+                  <Link to="/privacy" style={{ color: "#d4a017" }}>
                     Privacy Policy
                   </Link>
                   , and{" "}
-                  <Link
-                    to="/risk-disclosure"
-                    style={{ color: "#d4a017" }}
-                  >
+                  <Link to="/risk-disclosure" style={{ color: "#d4a017" }}>
                     Risk Disclosure
                   </Link>
-                  . I understand that investment involves risk and returns are
-                  not guaranteed.
+                  . I understand that investment involves risk and returns
+                  are not guaranteed.
                 </span>
 
               </label>
 
               {fieldErrors.agreed && (
-                <p
-                  className="text-xs mt-2"
-                  style={{ color: "#e05050" }}
-                >
+                <p className="text-xs mt-2" style={{ color: "#e05050" }}>
                   {fieldErrors.agreed}
                 </p>
               )}
